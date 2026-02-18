@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>David's Recovery Dugout</title>
+  <style>
+    :root {
+      --nats-red: #BA0C2F;
+      --nats-navy: #11274B;
+      --nats-white: #FFFFFF;
+      --bg: #F8F5F0;
+      --text: #1a1a1a;
+      --card-bg: #ffffff;
+      --border: #ddd;
+      --success: #BA0C2F;
+      --warning: #e07b00;
+      --danger: #7a0000;
+      --nats-gold: #C4A042;
+      --muted: #666;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    /* Setup screen */
+    .setup-screen {
+      max-width: 480px;
+      margin: 60px auto;
+      padding: 40px 32px;
+      background: var(--nats-navy);
+      border-radius: 16px;
+      text-align: center;
+      color: var(--nats-white);
+    }
+    .setup-screen .logo { font-size: 64px; margin-bottom: 16px; animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    .setup-screen h1 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .setup-screen p { opacity: 0.85; margin-bottom: 28px; }
+    .setup-screen label { display: block; text-align: left; margin-bottom: 6px; font-weight: 600; }
+    .setup-screen input[type="date"] {
+      width: 100%; padding: 14px 16px; border-radius: 8px; border: none;
+      font-size: 18px; margin-bottom: 20px;
+    }
+    .setup-screen button {
+      width: 100%; padding: 16px; background: var(--nats-red);
+      color: white; border: none; border-radius: 8px; font-size: 18px;
+      font-weight: 700; cursor: pointer;
+    }
+
+    /* App shell */
+    .app-header {
+      background: var(--nats-navy);
+      color: var(--nats-white);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .app-header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
+    .curly-w { font-style: italic; font-weight: 900; color: var(--nats-red); font-size: 1.1em; }
+    .app-header .day-badge {
+      background: var(--nats-red);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .app-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: repeating-linear-gradient(90deg, var(--nats-red) 0px, var(--nats-red) 12px, transparent 12px, transparent 18px);
+    }
+    .app-header { position: sticky; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--nats-navy);
+      display: flex;
+      border-top: 2px solid var(--nats-red);
+      z-index: 100;
+    }
+    .nav-item {
+      flex: 1;
+      padding: 10px 4px;
+      text-align: center;
+      color: rgba(255,255,255,0.6);
+      font-size: 11px;
+      cursor: pointer;
+      border: none;
+      background: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+    .nav-item .nav-icon { font-size: 22px; }
+    .nav-item.active { color: var(--nats-red); }
+
+    /* Main content area */
+    .main-content {
+      padding: 20px 16px 100px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--nats-navy);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      min-height: 44px;
+    }
+    .btn-primary { background: var(--nats-red); color: white; }
+    .btn-secondary { background: var(--nats-navy); color: white; }
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--nats-navy);
+      color: var(--nats-navy);
+    }
+    .btn-full { width: 100%; display: block; }
+    .btn:disabled { opacity: 0.4; cursor: default; }
+    .btn-done { background: var(--nats-red); color: white; }
+
+    /* Alert banners */
+    .alert {
+      padding: 14px 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .alert-danger { background: #fde8e8; color: var(--danger); border-left: 4px solid var(--danger); }
+    .alert-warning { background: #fff3cd; color: #7a4f00; border-left: 4px solid var(--warning); }
+    .alert-success { background: #fde8e8; color: var(--nats-red); border-left: 4px solid var(--nats-red); }
+
+    /* Form elements */
+    input[type="number"], input[type="text"], input[type="time"], select, textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 17px;
+      margin-bottom: 12px;
+      background: white;
+    }
+    input:focus, select:focus { outline: none; border-color: var(--nats-navy); }
+    label { display: block; font-weight: 600; margin-bottom: 4px; color: var(--nats-navy); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; font-size: 15px; }
+    th { background: var(--nats-navy); color: white; padding: 10px 12px; text-align: left; }
+    td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+
+    /* Print styles */
+    @media print {
+      .bottom-nav, .app-header, .no-print { display: none !important; }
+      #app { display: none !important; }
+      #print-sheet { display: block !important; }
+      body { font-size: 13px; background: white; }
+      .card { box-shadow: none; border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 12px; }
+      .print-header {
+        text-align: center;
+        border-bottom: 3px solid #11274B;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+      }
+      .print-header h1 { font-size: 22px; color: #11274B; }
+      .print-header p { font-size: 13px; color: #666; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="print-sheet" style="display:none;"></div>
+  <script>
+    // ===== Security: escape all user-supplied strings before inserting into innerHTML =====
+    // This helper is used for any field that accepts free-text input (notes, BP values, times, etc.)
+    // Static content (medication names, exercise names) are hardcoded constants and do not need escaping.
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ===== localStorage helpers =====
+    const STORE = {
+      get: (key) => JSON.parse(localStorage.getItem(key) || 'null'),
+      set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+      push: (key, item) => {
+        const arr = STORE.get(key) || [];
+        arr.push(item);
+        STORE.set(key, arr);
+      }
+    };
+
+    // ===== Google Sheets Sync =====
+    const SYNC = {
+      get url() { return STORE.get('sync_url'); },
+      isOnline: false,
+      lastSync: null,
+
+      // POST a single entry to the sheet
+      async push(tab, entry) {
+        // Always save locally first
+        STORE.push(tab, entry);
+
+        const url = SYNC.url;
+        if (!url) return;
+
+        try {
+          const resp = await fetch(url + '?action=push', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ tab, entry })
+          });
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          SYNC.isOnline = true;
+          SYNC.lastSync = Date.now();
+          SYNC.updateDot();
+        } catch (e) {
+          console.warn('Sync push failed, queuing:', e.message);
+          SYNC.isOnline = false;
+          SYNC.updateDot();
+          SYNC.enqueue(tab, entry);
+        }
+      },
+
+      // Pull all data from sheet and merge into localStorage
+      async pull() {
+        const url = SYNC.url;
+        if (!url) return;
+
+        try {
+          const resp = await fetch(url + '?action=pull');
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const data = await resp.json();
+
+          // Map sheet tab names to localStorage keys
+          const keyMap = {
+            Medications: 'medications_log',
+            Symptoms: 'symptoms_log',
+            Exercises: 'exercises_log',
+            BP: 'bp_log'
+          };
+
+          Object.keys(keyMap).forEach(sheetTab => {
+            const localKey = keyMap[sheetTab];
+            const remoteRows = data[sheetTab] || [];
+            if (!remoteRows.length) return;
+
+            // Parse redFlags back from JSON string
+            if (sheetTab === 'Symptoms') {
+              remoteRows.forEach(r => {
+                if (typeof r.redFlags === 'string' && r.redFlags.startsWith('[')) {
+                  try { r.redFlags = JSON.parse(r.redFlags); } catch(e) {}
+                }
+              });
+            }
+
+            // Parse numeric fields that Sheets may return as strings
+            remoteRows.forEach(r => {
+              ['painLevel','temp','systolic','diastolic','pulse','doseMg'].forEach(f => {
+                if (r[f] !== '' && r[f] !== undefined && r[f] !== null) {
+                  const n = Number(r[f]);
+                  if (!isNaN(n)) r[f] = n;
+                }
+              });
+              // Normalize empty strings to null
+              ['dose','notes','pulse','temp','painLevel'].forEach(f => {
+                if (r[f] === '') r[f] = null;
+              });
+            });
+
+            const local = STORE.get(localKey) || [];
+            // Merge: use remote as source of truth, deduplicate by date+time+key field
+            const merged = deduplicateMerge(local, remoteRows, sheetTab);
+            STORE.set(localKey, merged);
+          });
+
+          // Sync surgery date from Settings
+          if (data.Settings && data.Settings.length) {
+            const sdRow = data.Settings.find(r => r.key === 'surgeryDate');
+            if (sdRow && sdRow.value) {
+              STORE.set('recovery_start_date', sdRow.value);
+              STATE.surgeryDate = sdRow.value;
+            }
+          }
+
+          SYNC.isOnline = true;
+          SYNC.lastSync = Date.now();
+          SYNC.updateDot();
+
+          // Flush any queued items
+          await SYNC.flushQueue();
+        } catch (e) {
+          console.warn('Sync pull failed:', e.message);
+          SYNC.isOnline = false;
+          SYNC.updateDot();
+        }
+      },
+
+      // Push surgery date to Settings
+      async init(surgeryDate) {
+        STORE.set('recovery_start_date', surgeryDate);
+        const url = SYNC.url;
+        if (!url) return;
+        try {
+          await fetch(url + '?action=init', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({ surgeryDate })
+          });
+          SYNC.isOnline = true;
+          SYNC.updateDot();
+        } catch (e) {
+          console.warn('Sync init failed:', e.message);
+          SYNC.isOnline = false;
+          SYNC.updateDot();
+        }
+      },
+
+      // Offline queue
+      enqueue(tab, entry) {
+        const q = STORE.get('sync_queue') || [];
+        q.push({ tab, entry, queued: Date.now() });
+        STORE.set('sync_queue', q);
+      },
+
+      async flushQueue() {
+        const url = SYNC.url;
+        if (!url) return;
+        const q = STORE.get('sync_queue') || [];
+        if (!q.length) return;
+
+        const remaining = [];
+        for (const item of q) {
+          try {
+            const resp = await fetch(url + '?action=push', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({ tab: item.tab, entry: item.entry })
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          } catch (e) {
+            remaining.push(item);
+          }
+        }
+        STORE.set('sync_queue', remaining);
+        if (remaining.length === 0) {
+          SYNC.isOnline = true;
+          SYNC.updateDot();
+        }
+      },
+
+      // Update the sync indicator dot in the header
+      updateDot() {
+        const dot = document.getElementById('sync-dot');
+        if (!dot) return;
+        const q = STORE.get('sync_queue') || [];
+        if (!SYNC.url) {
+          dot.style.display = 'none';
+        } else if (SYNC.isOnline && q.length === 0) {
+          dot.style.background = '#4CAF50';
+          dot.title = 'Synced with Google Sheets';
+          dot.style.display = 'inline-block';
+        } else if (q.length > 0) {
+          dot.style.background = '#FF9800';
+          dot.title = q.length + ' item(s) waiting to sync';
+          dot.style.display = 'inline-block';
+        } else {
+          dot.style.background = '#FF9800';
+          dot.title = 'Offline — data saved locally';
+          dot.style.display = 'inline-block';
+        }
+      }
+    };
+
+    // Deduplicate merge: combine local + remote, preferring unique entries
+    function deduplicateMerge(local, remote, sheetTab) {
+      const keyFn = {
+        Medications: e => e.date + '|' + e.time + '|' + e.medId,
+        Symptoms:    e => e.date + '|' + e.time,
+        Exercises:   e => e.date + '|' + e.exerciseId + '|' + e.session,
+        BP:          e => e.date + '|' + e.time + '|' + e.systolic + '|' + e.diastolic
+      }[sheetTab] || (e => JSON.stringify(e));
+
+      const seen = new Set();
+      const merged = [];
+      // Remote entries first (source of truth)
+      for (const entry of remote) {
+        const k = keyFn(entry);
+        if (!seen.has(k)) {
+          seen.add(k);
+          merged.push(entry);
+        }
+      }
+      // Then local entries that aren't duplicates
+      for (const entry of local) {
+        const k = keyFn(entry);
+        if (!seen.has(k)) {
+          seen.add(k);
+          merged.push(entry);
+        }
+      }
+      return merged;
+    }
+
+    // ===== App state =====
+    const STATE = {
+      surgeryDate: STORE.get('recovery_start_date'),
+      currentSection: 'dashboard'
+    };
+
+    function recoveryDay() {
+      if (!STATE.surgeryDate) return null;
+      const start = new Date(STATE.surgeryDate);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      start.setHours(0,0,0,0);
+      return Math.floor((today - start) / 86400000) + 1;
+    }
+
+    function isPreSurgery() {
+      const day = recoveryDay();
+      return day !== null && day <= 0;
+    }
+
+    function daysUntilSurgery() {
+      if (!STATE.surgeryDate) return null;
+      const start = new Date(STATE.surgeryDate);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      start.setHours(0,0,0,0);
+      return Math.floor((start - today) / 86400000);
+    }
+
+    function todayStr() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function nowStr() {
+      return new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    }
+
+    // ===== Nationals-themed motivational messages =====
+    const NATS_CHEERS_POSTOP = [
+      'Let\'s go, David! &#128079;&#128079;&#128079;',
+      'Knock this one out of the park!',
+      'Every rep gets you closer to the pennant!',
+      'You\'re rounding the bases, David!',
+      'The Nats didn\'t quit in 2019 and neither will you!',
+      'Stay in the fight! &#9918;',
+      'One pitch at a time, one day at a time.',
+      'World Series champs recover like champions!',
+      'Channel your inner Juan Soto shuffle!',
+      'From the DL back to the starting lineup!'
+    ];
+
+    const NATS_CHEERS_PREOP = [
+      'Spring Training &mdash; building that roster strength!',
+      'Getting game-ready, one rep at a time!',
+      'The strongest teams are built in the offseason!',
+      'Pitchers and catchers have reported &mdash; time to work!',
+      'Pre-game warmups make the difference on game day!',
+      'Training like a future World Series champ!',
+      'Every spring training rep is an investment in October!',
+      'The 2019 Nats started 19-31. It\'s about how you finish!'
+    ];
+
+    function natsCheer() {
+      const cheers = isPreSurgery() ? NATS_CHEERS_PREOP : NATS_CHEERS_POSTOP;
+      return cheers[Math.floor(Math.random() * cheers.length)];
+    }
+
+    function inningLabel(day) {
+      if (day === null) return '';
+      if (day <= 0) return '&#9918; Spring Training';
+      if (day <= 7) return '1st Inning';
+      if (day <= 14) return '2nd Inning';
+      if (day <= 21) return '3rd Inning';
+      if (day <= 28) return '4th Inning';
+      if (day <= 35) return '5th Inning';
+      if (day <= 42) return '6th Inning';
+      if (day <= 56) return '7th Inning Stretch';
+      if (day <= 70) return '8th Inning';
+      if (day <= 84) return '9th Inning';
+      return 'Extra Innings &mdash; Victory Lap!';
+    }
+
+    // ===== Setup screen =====
+    function renderSetup() {
+      const app = document.getElementById('app');
+      app.textContent = '';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'setup-screen';
+      wrapper.innerHTML = [
+        '<div class="logo">&#9918;</div>',
+        '<h1>David\'s Recovery Dugout</h1>',
+        '<p>Time to step up to the plate, David.<br>Let\'s track your recovery like a championship season.</p>',
+        '<label for="surgery-date">When is game day (surgery date)?</label>',
+        '<input type="date" id="surgery-date">',
+        '<p style="font-size:13px;opacity:0.7;margin-bottom:20px;">Future date? We\'ll start you in Spring Training!</p>',
+        '<button onclick="saveSetup()">Play Ball! &#9918;</button>'
+      ].join('');
+      app.appendChild(wrapper);
+    }
+
+    function saveSetup() {
+      const d = document.getElementById('surgery-date').value;
+      if (!d) { alert('Please enter your surgery date.'); return; }
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { alert('Invalid date.'); return; }
+      STORE.set('recovery_start_date', d);
+      STATE.surgeryDate = d;
+      SYNC.init(d);
+      promptSyncUrl();
+    }
+
+    // Sync URL prompt — static HTML only, no user input interpolated
+    function promptSyncUrl() {
+      const app = document.getElementById('app');
+      app.textContent = '';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'setup-screen';
+
+      const logo = document.createElement('div');
+      logo.className = 'logo';
+      logo.textContent = '\u{1F517}';
+      wrapper.appendChild(logo);
+
+      const h1 = document.createElement('h1');
+      h1.textContent = 'Enable Cloud Sync?';
+      wrapper.appendChild(h1);
+
+      const desc = document.createElement('p');
+      desc.textContent = 'To share data between devices, paste your Google Apps Script web app URL below.';
+      wrapper.appendChild(desc);
+
+      const label = document.createElement('label');
+      label.setAttribute('for', 'sync-url-input');
+      label.textContent = 'Apps Script URL (optional)';
+      wrapper.appendChild(label);
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = 'sync-url-input';
+      input.placeholder = 'https://script.google.com/macros/s/...';
+      input.style.cssText = 'width:100%;padding:14px 16px;border-radius:8px;border:none;font-size:15px;margin-bottom:20px;';
+      wrapper.appendChild(input);
+
+      const saveBtn = document.createElement('button');
+      saveBtn.textContent = 'Save & Sync';
+      saveBtn.style.cssText = 'width:100%;padding:16px;background:var(--nats-red);color:white;border:none;border-radius:8px;font-size:18px;font-weight:700;cursor:pointer;margin-bottom:12px;';
+      saveBtn.onclick = saveSyncUrl;
+      wrapper.appendChild(saveBtn);
+
+      const skipBtn = document.createElement('button');
+      skipBtn.textContent = 'Skip \u2014 Use Offline Only';
+      skipBtn.style.cssText = 'width:100%;padding:12px;background:transparent;color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.3);border-radius:8px;font-size:16px;cursor:pointer;';
+      skipBtn.onclick = skipSync;
+      wrapper.appendChild(skipBtn);
+
+      app.appendChild(wrapper);
+    }
+
+    function saveSyncUrl() {
+      const url = document.getElementById('sync-url-input').value.trim();
+      if (url) {
+        STORE.set('sync_url', url);
+      }
+      renderApp();
+      if (url) SYNC.pull().then(() => navigate(STATE.currentSection));
+    }
+
+    function skipSync() {
+      renderApp();
+    }
+
+    function showSyncSettings() {
+      const current = SYNC.url || '';
+      const url = prompt('Enter your Google Apps Script web app URL (or leave blank to disable sync):', current);
+      if (url === null) return; // cancelled
+      if (url.trim()) {
+        STORE.set('sync_url', url.trim());
+        SYNC.pull().then(() => {
+          STATE.surgeryDate = STORE.get('recovery_start_date');
+          navigate(STATE.currentSection);
+        });
+      } else {
+        localStorage.removeItem('sync_url');
+        SYNC.isOnline = false;
+      }
+      navigate(STATE.currentSection);
+    }
+
+    // ===== App shell — nav and section routing =====
+    function renderApp() {
+      const app = document.getElementById('app');
+      app.textContent = '';
+
+      // Header
+      const header = document.createElement('header');
+      header.className = 'app-header';
+      const day = recoveryDay();
+      header.innerHTML = '<h1>&#9918; Recovery Dugout <span id="sync-dot" style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#FF9800;vertical-align:middle;margin-left:6px;' + (SYNC.url ? '' : 'display:none;') + '" title="Sync status"></span></h1><span class="day-badge">Day ' + (day ?? '&#8212;') + ' &bull; ' + inningLabel(day) + '</span>';
+      app.appendChild(header);
+
+      // Main content
+      const main = document.createElement('main');
+      main.className = 'main-content';
+      main.id = 'section-content';
+      app.appendChild(main);
+
+      // Bottom nav
+      const nav = document.createElement('nav');
+      nav.className = 'bottom-nav';
+      const preSurgery = isPreSurgery();
+      const navItems = [
+        { id: 'dashboard', icon: '&#127968;', label: 'Home' },
+        { id: 'meds', icon: '&#128138;', label: 'Meds' },
+        { id: 'symptoms', icon: '&#127777;&#65039;', label: 'Symptoms' },
+        { id: 'exercises', icon: preSurgery ? '&#9918;' : '&#129461;', label: preSurgery ? 'Prehab' : 'PT' },
+        { id: 'bp', icon: '&#10084;&#65039;', label: 'BP' },
+        { id: 'timeline', icon: '&#128197;', label: 'Timeline' }
+      ];
+      navItems.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-item';
+        btn.id = 'nav-' + item.id;
+        btn.onclick = () => navigate(item.id);
+        btn.innerHTML = '<span class="nav-icon">' + item.icon + '</span>' + item.label;
+        nav.appendChild(btn);
+      });
+      app.appendChild(nav);
+
+      navigate('dashboard');
+    }
+
+    function navigate(section) {
+      STATE.currentSection = section;
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      const navEl = document.getElementById('nav-' + section);
+      if (navEl) navEl.classList.add('active');
+      const content = document.getElementById('section-content');
+      const renderers = {
+        dashboard: renderDashboard,
+        meds: renderMeds,
+        symptoms: renderSymptoms,
+        exercises: renderExercises,
+        bp: renderBP,
+        timeline: renderTimeline
+      };
+      if (renderers[section]) renderers[section](content);
+    }
+
+    // ===== Medication Tracker =====
+    const MEDS = [
+      {
+        id: 'aspirin',
+        name: 'Aspirin 81mg',
+        icon: '&#129656;',
+        getSchedule: () => {
+          const day = recoveryDay();
+          if (day === null) return null;
+          if (day <= 14) return { dose: '81mg', times: 2, instruction: '2x daily with food (morning &amp; evening)' };
+          if (day <= 44) return { dose: '81mg', times: 1, instruction: '1x daily with food' };
+          return null;
+        },
+        note: 'Blood thinner &#8212; prevents clots'
+      },
+      {
+        id: 'celebrex',
+        name: 'Celebrex 200mg',
+        icon: '&#129302;',
+        getSchedule: () => ({ dose: '200mg', times: 1, instruction: '1x daily as needed for swelling' }),
+        note: 'For inflammation and swelling'
+      },
+      {
+        id: 'tylenol',
+        name: 'Tylenol (Acetaminophen)',
+        icon: '&#128138;',
+        getSchedule: () => ({ dose: 'up to 1000mg', times: 3, instruction: 'Up to 1000mg every 8 hrs. MAX 3000mg/day total.' }),
+        note: 'Track your daily total carefully &#8212; do not exceed 3000mg'
+      },
+      {
+        id: 'oxycodone',
+        name: 'Oxycodone 5mg',
+        icon: '&#9888;&#65039;',
+        getSchedule: () => ({ dose: 'see pain level', times: null, instruction: 'Pain 1&#8211;3: every 8h. Pain 4&#8211;7: 1 tab every 6h. Pain 8&#8211;10: 2 tabs every 6h. Wean off ASAP.' }),
+        note: 'Narcotic &#8212; take only as needed, reduce as soon as possible'
+      },
+      {
+        id: 'colace',
+        name: 'Colace (Stool Softener) 100mg',
+        icon: '&#127807;',
+        getSchedule: () => ({ dose: '100mg', times: 2, instruction: '2x daily as needed while taking oxycodone' }),
+        note: 'Prevents constipation from pain meds'
+      }
+    ];
+
+    function getTylenolTodayMg() {
+      const log = STORE.get('medications_log') || [];
+      const today = todayStr();
+      return log
+        .filter(e => e.date === today && e.medId === 'tylenol')
+        .reduce((sum, e) => sum + (e.doseMg || 0), 0);
+    }
+
+    function renderMeds(el) {
+      if (isPreSurgery()) {
+        el.innerHTML = '<h2 class="card-title">&#128138; Medications</h2>' +
+          '<div class="card" style="text-align:center;padding:32px;">' +
+          '<div style="font-size:48px;margin-bottom:12px;">&#9918;</div>' +
+          '<h3 style="color:var(--nats-navy);margin-bottom:8px;">Spring Training &mdash; No Meds Yet!</h3>' +
+          '<p style="color:var(--muted);">Medication tracking activates on Game Day (surgery day).<br>For now, focus on your prehab exercises!</p>' +
+          '<button class="btn btn-primary" onclick="navigate(\'exercises\')" style="margin-top:16px;">&#9918; Go to Spring Training</button>' +
+          '</div>';
+        return;
+      }
+      const day = recoveryDay();
+      const today = todayStr();
+      const log = STORE.get('medications_log') || [];
+      const tylenolToday = getTylenolTodayMg();
+      const tylenolWarning = tylenolToday >= 2500;
+
+      // All medication names, icons, notes, and instructions are static constants defined in MEDS array above.
+      // Only user-generated data (time, medName from log entries) is escaped via escapeHtml().
+      let html = '<h2 class="card-title">&#128138; Medications</h2>';
+
+      if (day !== null) {
+        html += '<p style="color:var(--muted);margin-bottom:16px;">Recovery Day ' + day + ' &mdash; ' + new Date().toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric'}) + '</p>';
+      }
+
+      if (tylenolWarning) {
+        html += '<div class="alert alert-warning">&#9888;&#65039; Tylenol today: ' + tylenolToday + 'mg of 3000mg max. Be careful with next dose.</div>';
+      }
+
+      if (day !== null && day > 44) {
+        html += '<div class="alert alert-success">&#9989; Aspirin protocol complete (Day 44+). Check with surgeon about ongoing meds.</div>';
+      }
+
+      MEDS.forEach(med => {
+        const schedule = med.getSchedule();
+        if (!schedule) return;
+
+        const todayLogs = log.filter(e => e.date === today && e.medId === med.id);
+        const takenCount = todayLogs.length;
+        const timesNeeded = schedule.times || '&mdash;';
+        const done = schedule.times && takenCount >= schedule.times;
+
+        html += '<div class="card" style="border-left: 4px solid ' + (done ? 'var(--nats-red)' : 'var(--border)') + '">';
+        html += '<div class="card-title">' + med.icon + ' ' + med.name + ' ' + (done ? '&#9918;' : '') + '</div>';
+        html += '<p style="margin-bottom:6px;font-size:15px;">' + schedule.instruction + '</p>';
+        html += '<p style="color:var(--muted);font-size:14px;margin-bottom:14px;">' + med.note + '</p>';
+        if (schedule.times) {
+          html += '<p style="margin-bottom:10px;font-size:14px;">Taken today: <strong>' + takenCount + ' / ' + timesNeeded + '</strong></p>';
+        }
+        if (med.id === 'tylenol') {
+          html += '<p style="margin-bottom:10px;font-size:14px;">Daily total: <strong style="color:' + (tylenolWarning ? 'var(--warning)' : 'inherit') + '">' + tylenolToday + 'mg / 3000mg</strong></p>';
+        }
+        if (!done) {
+          html += renderMedLogButton(med);
+        } else {
+          html += '<p style="color:var(--nats-red);font-weight:700;">&#9989; In the books! &#9918;</p>';
+        }
+        html += '</div>';
+      });
+
+      const todayLog = log.filter(e => e.date === today);
+      html += '<div class="card"><div class="card-title">&#128203; Today\'s Log</div>' + renderMedLogTable(todayLog) + '</div>';
+
+      el.innerHTML = html;
+    }
+
+    function renderMedLogButton(med) {
+      if (med.id === 'oxycodone') {
+        return '<label>Pain level right now:</label>' +
+          '<select id="pain-level-select" style="margin-bottom:10px;">' +
+          '<option value="">Select pain level...</option>' +
+          '<option value="2">1&#8211;3 (Mild)</option>' +
+          '<option value="5">4&#8211;7 (Moderate) &mdash; 1 tablet</option>' +
+          '<option value="9">8&#8211;10 (Severe) &mdash; 2 tablets</option>' +
+          '</select>' +
+          '<button class="btn btn-primary btn-full" onclick="logMed(\'oxycodone\')">Mark Oxycodone Taken</button>';
+      }
+      if (med.id === 'tylenol') {
+        return '<label>Dose taken (mg):</label>' +
+          '<select id="tylenol-dose-select" style="margin-bottom:10px;">' +
+          '<option value="500">500mg (1 regular tablet)</option>' +
+          '<option value="1000" selected>1000mg (2 tablets / max single dose)</option>' +
+          '</select>' +
+          '<button class="btn btn-primary btn-full" onclick="logMed(\'tylenol\')">Mark Tylenol Taken</button>';
+      }
+      return '<button class="btn btn-primary btn-full" onclick="logMed(\'' + med.id + '\')">Mark Taken</button>';
+    }
+
+    function renderMedLogTable(entries) {
+      if (entries.length === 0) return '<p style="color:var(--muted);">No medications logged yet today.</p>';
+      let html = '<table><tr><th>Time</th><th>Medication</th><th>Dose</th></tr>';
+      entries.forEach(e => {
+        html += '<tr><td>' + escapeHtml(e.time) + '</td><td>' + escapeHtml(e.medName) + '</td><td>' + escapeHtml(e.dose || '') + '</td></tr>';
+      });
+      html += '</table>';
+      return html;
+    }
+
+    function logMed(medId) {
+      const med = MEDS.find(m => m.id === medId);
+      let dose = null;
+      let doseMg = null;
+      let painLevel = null;
+
+      if (medId === 'tylenol') {
+        const sel = document.getElementById('tylenol-dose-select');
+        doseMg = sel ? parseInt(sel.value) : 1000;
+        const currentTotal = getTylenolTodayMg();
+        if (currentTotal + doseMg > 3000) {
+          alert('This dose would exceed 3000mg of Tylenol today. Please wait or take a smaller dose.');
+          return;
+        }
+        dose = doseMg + 'mg';
+      }
+
+      if (medId === 'oxycodone') {
+        const sel = document.getElementById('pain-level-select');
+        painLevel = sel ? parseInt(sel.value) : null;
+        if (!painLevel) { alert('Please select your pain level first.'); return; }
+        dose = painLevel >= 8 ? '10mg (2 tabs)' : '5mg (1 tab)';
+      }
+
+      const entry = {
+        date: todayStr(),
+        time: nowStr(),
+        medId,
+        medName: med.name,
+        dose,
+        doseMg,
+        painLevel
+      };
+      SYNC.push('medications_log', entry);
+
+      navigate('meds');
+    }
+
+    // ===== Pain & Symptom Log =====
+    const RED_FLAGS = [
+      'Shortness of breath',
+      'Chest pain',
+      'Calf pain or warmth',
+      'Pus or foul odor from wound',
+      'Chills or fever'
+    ];
+
+    function renderSymptoms(el) {
+      if (isPreSurgery()) {
+        el.innerHTML = '<h2 class="card-title">&#127777;&#65039; Daily Symptom Check</h2>' +
+          '<div class="card" style="text-align:center;padding:32px;">' +
+          '<div style="font-size:48px;margin-bottom:12px;">&#9918;</div>' +
+          '<h3 style="color:var(--nats-navy);margin-bottom:8px;">Spring Training &mdash; No Symptoms to Track Yet!</h3>' +
+          '<p style="color:var(--muted);">Symptom tracking activates after surgery.<br>For now, keep up the prehab work!</p>' +
+          '<button class="btn btn-primary" onclick="navigate(\'exercises\')" style="margin-top:16px;">&#9918; Go to Spring Training</button>' +
+          '</div>';
+        return;
+      }
+      const log = STORE.get('symptoms_log') || [];
+      const recent = [...log].reverse().slice(0, 7);
+
+      // Red flag labels are static constants. User-generated log data is escaped.
+      let html = '<h2 class="card-title">&#127777;&#65039; Daily Symptom Check</h2>' +
+        '<div class="card"><div class="card-title">Log Today\'s Check-In</div>' +
+        '<label>Pain level (1&#8211;10)</label>' +
+        '<input type="range" min="1" max="10" value="3" id="sym-pain" oninput="document.getElementById(\'pain-val\').textContent=this.value" style="width:100%;margin-bottom:4px;">' +
+        '<p style="text-align:center;font-size:20px;font-weight:700;margin-bottom:14px;" id="pain-val">3</p>' +
+        '<label>Temperature (&deg;F)</label>' +
+        '<input type="number" id="sym-temp" placeholder="e.g. 98.6" min="95" max="106" step="0.1">' +
+        '<label>Wound drainage color</label>' +
+        '<div style="display:flex;gap:10px;margin-bottom:14px;">' +
+        '<button class="btn btn-outline drainage-btn" data-val="none" onclick="pickDrainage(\'none\')" style="flex:1">None</button>' +
+        '<button class="btn btn-outline drainage-btn" data-val="red" onclick="pickDrainage(\'red\')" style="flex:1">&#128308; Red<br><small>(normal)</small></button>' +
+        '<button class="btn btn-outline drainage-btn" data-val="yellow" onclick="pickDrainage(\'yellow\')" style="flex:1">&#128993; Yellow<br><small>(call office)</small></button>' +
+        '</div>' +
+        '<input type="hidden" id="sym-drainage" value="none">' +
+        '<label>Swelling</label>' +
+        '<select id="sym-swelling" style="margin-bottom:14px;">' +
+        '<option value="none">None</option><option value="mild">Mild</option><option value="significant">Significant</option>' +
+        '</select>' +
+        '<label style="margin-bottom:8px;">Red flags &#8212; tap any that apply:</label>' +
+        '<div id="red-flags" style="margin-bottom:16px;">';
+
+      RED_FLAGS.forEach((f, i) => {
+        html += '<label style="display:flex;align-items:center;gap:10px;margin-bottom:10px;font-weight:400;cursor:pointer;">' +
+          '<input type="checkbox" id="flag-' + i + '" value="' + i + '" style="width:22px;height:22px;">' +
+          escapeHtml(f) + '</label>';
+      });
+
+      html += '</div><button class="btn btn-primary btn-full" onclick="logSymptoms()">Save Today\'s Check-In</button></div>';
+
+      if (recent.length) {
+        html += '<div class="card"><div class="card-title">Recent Check-Ins</div>' +
+          '<table><tr><th>Date</th><th>Pain</th><th>Temp</th><th>Drainage</th></tr>';
+        recent.forEach(e => {
+          html += '<tr><td>' + escapeHtml(e.date) + '</td>' +
+            '<td>' + escapeHtml(String(e.painLevel)) + '/10</td>' +
+            '<td>' + (e.temp ? escapeHtml(String(e.temp)) + '&deg;F' : '&mdash;') + (parseFloat(e.temp) >= 101 ? ' &#128680;' : '') + '</td>' +
+            '<td>' + escapeHtml(e.drainage || '') + '</td></tr>';
+        });
+        html += '</table></div>';
+      }
+
+      el.innerHTML = html;
+    }
+
+    function pickDrainage(val) {
+      document.getElementById('sym-drainage').value = val;
+      document.querySelectorAll('.drainage-btn').forEach(btn => {
+        const isSelected = btn.dataset.val === val;
+        btn.style.background = isSelected ? 'var(--nats-navy)' : '';
+        btn.style.color = isSelected ? 'white' : '';
+      });
+    }
+
+    function logSymptoms() {
+      const pain = parseInt(document.getElementById('sym-pain').value);
+      const tempRaw = document.getElementById('sym-temp').value;
+      const temp = tempRaw ? parseFloat(tempRaw) : null;
+      const drainage = document.getElementById('sym-drainage').value;
+      const swelling = document.getElementById('sym-swelling').value;
+
+      const flags = Array.from(document.querySelectorAll('#red-flags input:checked'))
+        .map(el => RED_FLAGS[parseInt(el.value)])
+        .filter(Boolean);
+
+      const entry = { date: todayStr(), time: nowStr(), painLevel: pain, temp, drainage, swelling, redFlags: flags };
+      SYNC.push('symptoms_log', entry);
+
+      const alerts = [];
+      if (temp !== null && temp >= 101) alerts.push('Fever detected (\u2265101\u00b0F). Call surgeon: 301-530-1010');
+      if (drainage === 'yellow') alerts.push('Yellow drainage: email a photo to sdurbhakulama@alignedortho.com');
+      if (flags.length) alerts.push('Red flags noted: ' + flags.join(', ') + '. Call surgeon immediately: 301-530-1010');
+
+      if (alerts.length) {
+        alert('Important:\n\n' + alerts.join('\n\n'));
+      } else {
+        alert('Check-in saved! Another solid at-bat, David. Stay in the fight!');
+      }
+
+      navigate('symptoms');
+    }
+
+    // ===== Exercise Tracker with Quad Set Timer =====
+
+    // Pre-op "Spring Training" prehab exercises — builds strength before surgery
+    const PREHAB_EXERCISES = [
+      { id: 'pre_quad_sets',      name: 'Quad Sets',              reps: 20, icon: '&#129461;', tip: 'Tighten thigh muscle, press knee into floor. Hold 5 seconds. Building this muscle now speeds post-op recovery!', timerType: 'guided' },
+      { id: 'pre_straight_leg',   name: 'Straight Leg Raises',    reps: 15, icon: '&#11014;&#65039;', tip: 'Lie flat, tighten quad, lift leg 12 inches with toes up. Hold 3 seconds, lower slowly.', timerType: 'tap' },
+      { id: 'pre_heel_slides',    name: 'Heel Slides',            reps: 15, icon: '&#128716;', tip: 'Lie on back, slide heel toward buttocks bending knee, then straighten. Maintain range of motion.', timerType: 'tap' },
+      { id: 'pre_ankle_pumps',    name: 'Ankle Pumps',            reps: 20, icon: '&#129462;', tip: 'Pump feet up and down. Keeps circulation strong &mdash; important prep for surgery day.', timerType: 'tap' },
+      { id: 'pre_wall_squats',    name: 'Wall Mini-Squats',       reps: 10, icon: '&#129681;', tip: 'Stand with back against wall, feet shoulder-width apart. Slide down to a comfortable bend (not past 45&deg;), hold 5 seconds, slide up.', timerType: 'tap' },
+      { id: 'pre_step_ups',       name: 'Step-Ups',               reps: 10, icon: '&#129406;', tip: 'Use a low step (4&ndash;6 inches). Step up with operative leg, bring other foot up, step down. Hold railing for balance.', timerType: 'tap' },
+      { id: 'pre_hip_abduction',  name: 'Side-Lying Hip Abduction', reps: 15, icon: '&#129464;', tip: 'Lie on non-operative side. Lift top leg 12 inches, keep it straight, hold 3 seconds, lower slowly. Strengthens hip stabilizers.', timerType: 'tap' },
+      { id: 'pre_calf_raises',    name: 'Calf Raises',            reps: 15, icon: '&#129462;', tip: 'Stand holding a counter. Rise up on toes, hold 3 seconds, lower slowly. Builds ankle strength for post-op walking.', timerType: 'tap' }
+    ];
+
+    // Post-op recovery exercises
+    const EXERCISES = [
+      { id: 'ankle_pumps',       name: 'Ankle Pumps',         reps: 20, icon: '&#129462;', tip: 'Move feet up and down, toes toward nose. Do HOURLY while awake.',                                   timerType: 'tap' },
+      { id: 'quad_sets',         name: 'Quad Sets',            reps: 20, icon: '&#129461;', tip: 'Tighten thigh muscle, press knee down. Hold 7 seconds each rep.',                                   timerType: 'guided' },
+      { id: 'gluteal_sets',      name: 'Gluteal Sets',         reps: 20, icon: '&#129681;', tip: 'Squeeze buttocks together, hold briefly, release.',                                                 timerType: 'tap' },
+      { id: 'heel_slides',       name: 'Heel Slides',          reps: 20, icon: '&#128716;', tip: 'Slide heel toward bottom, then straighten. Use a towel under foot on hard floors.',                timerType: 'tap' },
+      { id: 'short_arc_quads',   name: 'Short Arc Quads',      reps: 20, icon: '&#128208;', tip: 'Towel roll under knee. Lift foot, straighten knee without raising thigh.',                          timerType: 'tap' },
+      { id: 'long_arc_quads',    name: 'Long Arc Quads',       reps: 20, icon: '&#129681;', tip: 'Sit with back against chair. Straighten knee fully, lower slowly.',                                timerType: 'tap' },
+      { id: 'straight_leg_raise',name: 'Straight Leg Raises',  reps: 20, icon: '&#11014;&#65039;', tip: 'Keep operative knee straight, lift leg 12+ inches with toes up.',                           timerType: 'tap' }
+    ];
+
+    function activeExercises() {
+      return isPreSurgery() ? PREHAB_EXERCISES : EXERCISES;
+    }
+
+    function getExerciseLog(date) {
+      return (STORE.get('exercises_log') || []).filter(e => e.date === date);
+    }
+
+    function isExerciseDone(exerciseId, session) {
+      return getExerciseLog(todayStr()).some(e => e.exerciseId === exerciseId && e.session === session);
+    }
+
+    function markExerciseDone(exerciseId, session) {
+      if (isExerciseDone(exerciseId, session)) return;
+      SYNC.push('exercises_log', {
+        date: todayStr(),
+        time: nowStr(),
+        exerciseId,
+        session
+      });
+      navigate('exercises');
+    }
+
+    function getStreak() {
+      const log = STORE.get('exercises_log') || [];
+      if (!log.length) return 0;
+      let streak = 0;
+      const today = new Date();
+      for (let i = 0; i < 60; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const ds = d.toISOString().split('T')[0];
+        const dayLog = log.filter(e => e.date === ds);
+        if (dayLog.length >= activeExercises().length) {
+          streak++;
+        } else if (i > 0) {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    // Quad Set guided timer with Web Audio beeps
+    function beep(freq, duration) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = freq || 880;
+        gain.gain.value = 0.3;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + (duration || 200) / 1000);
+        osc.stop(ctx.currentTime + (duration || 200) / 1000);
+      } catch(e) { /* Audio not available — silent fallback */ }
+    }
+
+    function startQuadTimer(session, exerciseId) {
+      const isPreOp = exerciseId === 'pre_quad_sets';
+      const HOLD_SECS = isPreOp ? 5 : 7;
+      const REST_SECS = 3;
+      const TOTAL_REPS = isPreOp ? 20 : 20;
+
+      function updateTimerUI(seconds, phase, rep) {
+        const el = document.getElementById('quad-timer-display');
+        if (!el) return;
+        // All values here are numbers/static strings from timer logic — not user input
+        el.innerHTML = '<div style="text-align:center;padding:20px;background:#f8f5f0;border-radius:12px;margin-bottom:12px;">' +
+          '<div style="font-size:72px;font-weight:900;color:var(--nats-red);line-height:1">' + seconds + '</div>' +
+          '<div style="font-size:20px;margin:8px 0;font-weight:600;">' + (phase === 'hold' ? '&#129461; Hold the line!' : '&#9918; Dugout break...') + '</div>' +
+          '<div style="font-size:16px;color:var(--muted);">Rep ' + rep + ' of ' + TOTAL_REPS + '</div>' +
+          '<div style="height:8px;background:#eee;border-radius:4px;margin-top:16px;">' +
+          '<div style="height:8px;background:var(--nats-red);border-radius:4px;width:' + Math.round((rep / TOTAL_REPS) * 100) + '%;"></div>' +
+          '</div></div>';
+      }
+
+      function runPhase(rep, phase) {
+        if (rep > TOTAL_REPS) {
+          beep(1047, 400);
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+          markExerciseDone(exerciseId || 'quad_sets', session);
+          return;
+        }
+        const duration = phase === 'hold' ? HOLD_SECS : REST_SECS;
+        let remaining = duration;
+        if (phase === 'hold') beep(660, 150);
+        updateTimerUI(remaining, phase, rep);
+        const interval = setInterval(() => {
+          remaining--;
+          if (remaining <= 0) {
+            clearInterval(interval);
+            beep(phase === 'hold' ? 440 : 660, 150);
+            runPhase(phase === 'rest' ? rep + 1 : rep, phase === 'hold' ? 'rest' : 'hold');
+          } else {
+            updateTimerUI(remaining, phase, rep);
+          }
+        }, 1000);
+      }
+
+      runPhase(1, 'hold');
+    }
+
+    function renderExercises(el) {
+      const streak = getStreak();
+      const preSurgery = isPreSurgery();
+      const exercises = activeExercises();
+      const daysLeft = daysUntilSurgery();
+
+      // All exercise names, icons, and tips are static constants — safe for innerHTML.
+      let html = '';
+      if (preSurgery) {
+        html += '<h2 class="card-title">&#9918; Spring Training &mdash; Prehab</h2>';
+        if (daysLeft !== null) {
+          html += '<div class="alert alert-success" style="background:#fff8e1;color:#7a4f00;border-left-color:var(--nats-gold);">&#128197; <strong>' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + '</strong> until Game Day! Get those reps in!</div>';
+        }
+        html += '<p style="color:var(--muted);margin-bottom:16px;font-size:14px;">&#9918; Pre-surgery strengthening &mdash; the stronger you go in, the faster you come back. Do AM and PM sets daily.</p>';
+      } else {
+        html += '<h2 class="card-title">&#129461; PT Exercises</h2>';
+      }
+
+      if (streak > 0) {
+        const streakMsg = streak >= 7 ? 'All-Star caliber streak!' : streak >= 3 ? 'You\'re heating up like a playoff run!' : 'Building momentum!';
+        html += '<div class="alert alert-success">&#9918; ' + streak + '-game winning streak &mdash; ' + streakMsg + '</div>';
+      }
+
+      if (!preSurgery) {
+        html += '<p style="color:var(--muted);margin-bottom:16px;font-size:14px;">&#9918; Morning batting practice (AM) and evening game (PM). Mark each at-bat complete.</p>';
+      }
+
+      exercises.forEach(ex => {
+        const amDone = isExerciseDone(ex.id, 'AM');
+        const pmDone = isExerciseDone(ex.id, 'PM');
+        const bothDone = amDone && pmDone;
+
+        html += '<div class="card" style="border-left:4px solid ' + (bothDone ? 'var(--nats-red)' : 'var(--border)') + '">';
+        html += '<div class="card-title">' + ex.icon + ' ' + ex.name + ' ' + (bothDone ? '&#9918;' : '') + '</div>';
+        html += '<p style="font-size:14px;color:var(--muted);margin-bottom:14px;">' + ex.tip + '</p>';
+
+        if (ex.timerType === 'guided') {
+          const holdSecs = ex.id === 'pre_quad_sets' ? 5 : 7;
+          html += '<p style="font-size:14px;margin-bottom:12px;">' + ex.reps + ' reps &times; ' + holdSecs + '-second holds &times; 2 sets daily</p>';
+          html += '<div id="quad-timer-display"></div>';
+          html += '<div style="display:flex;gap:10px;">';
+          html += '<button class="btn ' + (amDone ? 'btn-done' : 'btn-primary') + '" style="flex:1" onclick="' + (amDone ? '' : "startQuadTimer('AM','" + ex.id + "')") + '" ' + (amDone ? 'disabled' : '') + '>' + (amDone ? '&#9989; AM Done' : '&#9654; Start AM Set') + '</button>';
+          html += '<button class="btn ' + (pmDone ? 'btn-done' : 'btn-secondary') + '" style="flex:1" onclick="' + (pmDone ? '' : "startQuadTimer('PM','" + ex.id + "')") + '" ' + (pmDone ? 'disabled' : '') + '>' + (pmDone ? '&#9989; PM Done' : '&#9654; Start PM Set') + '</button>';
+          html += '</div>';
+        } else {
+          html += '<p style="font-size:14px;margin-bottom:12px;">' + ex.reps + ' reps &times; 2 sets daily</p>';
+          html += '<div style="display:flex;gap:10px;">';
+          html += '<button class="btn ' + (amDone ? 'btn-done' : 'btn-primary') + '" style="flex:1" onclick="' + (amDone ? '' : "markExerciseDone('" + ex.id + "','AM')") + '" ' + (amDone ? 'disabled' : '') + '>' + (amDone ? '&#9989; AM Done' : 'Mark AM Done') + '</button>';
+          html += '<button class="btn ' + (pmDone ? 'btn-done' : 'btn-secondary') + '" style="flex:1" onclick="' + (pmDone ? '' : "markExerciseDone('" + ex.id + "','PM')") + '" ' + (pmDone ? 'disabled' : '') + '>' + (pmDone ? '&#9989; PM Done' : 'Mark PM Done') + '</button>';
+          html += '</div>';
+        }
+        html += '</div>';
+      });
+
+      el.innerHTML = html;
+    }
+
+    // ===== Blood Pressure Log =====
+    function renderBP(el) {
+      const log = [...(STORE.get('bp_log') || [])].reverse().slice(0, 20);
+
+      // BP form uses static labels. Log table data is escaped via escapeHtml().
+      let html = '<h2 class="card-title">&#10084;&#65039; Blood Pressure Log</h2>' +
+        '<div class="card"><div class="card-title">Log a Reading</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">' +
+        '<div><label>Systolic (top number)</label><input type="number" id="bp-sys" placeholder="e.g. 120" min="60" max="220"></div>' +
+        '<div><label>Diastolic (bottom number)</label><input type="number" id="bp-dia" placeholder="e.g. 80" min="40" max="140"></div>' +
+        '</div>' +
+        '<label>Pulse (optional)</label><input type="number" id="bp-pulse" placeholder="e.g. 72" min="30" max="200">' +
+        '<label>Notes (optional)</label><input type="text" id="bp-notes" placeholder="e.g. after morning walk" maxlength="100">' +
+        '<button class="btn btn-primary btn-full" onclick="logBP()">Save Reading</button></div>';
+
+      if (log.length) {
+        html += '<div class="card"><div class="card-title">Recent Readings</div>' +
+          '<table><tr><th>Date</th><th>Time</th><th>BP</th><th>Pulse</th></tr>';
+        log.forEach(e => {
+          html += '<tr><td>' + escapeHtml(e.date) + '</td>' +
+            '<td>' + escapeHtml(e.time) + '</td>' +
+            '<td><strong>' + escapeHtml(String(e.systolic)) + '/' + escapeHtml(String(e.diastolic)) + '</strong></td>' +
+            '<td>' + (e.pulse ? escapeHtml(String(e.pulse)) : '&mdash;') + '</td></tr>';
+        });
+        html += '</table></div>';
+      } else {
+        html += '<p style="color:var(--muted);padding:16px;">No readings logged yet.</p>';
+      }
+
+      el.innerHTML = html;
+    }
+
+    function logBP() {
+      const sysVal = document.getElementById('bp-sys').value;
+      const diaVal = document.getElementById('bp-dia').value;
+      const pulseVal = document.getElementById('bp-pulse').value;
+      const notesVal = document.getElementById('bp-notes').value.trim().slice(0, 100);
+
+      if (!sysVal || !diaVal) { alert('Please enter both systolic and diastolic values.'); return; }
+
+      const sys = parseInt(sysVal);
+      const dia = parseInt(diaVal);
+      if (isNaN(sys) || isNaN(dia) || sys < 60 || sys > 220 || dia < 40 || dia > 140) {
+        alert('Please enter valid blood pressure values.');
+        return;
+      }
+
+      SYNC.push('bp_log', {
+        date: todayStr(),
+        time: nowStr(),
+        systolic: sys,
+        diastolic: dia,
+        pulse: pulseVal ? parseInt(pulseVal) : null,
+        notes: notesVal || null
+      });
+
+      alert('Reading saved! Good hustle tracking those numbers, David!');
+      navigate('bp');
+    }
+
+    // ===== Recovery Timeline =====
+    function renderTimeline(el) {
+      const day = recoveryDay();
+
+      // All milestone data and contacts are static constants — safe for innerHTML.
+      const milestones = [
+        { day: 1,      label: 'In-home PT begins (~3pm)',                     icon: '&#127973;' },
+        { day: 1,      label: 'Resume home medications',                       icon: '&#128138;' },
+        { day: 2,      label: 'Aspirin 2x daily begins (through Day 14)',      icon: '&#129656;' },
+        { dayMin: 10, dayMax: 14, label: 'Staple removal (home PT or surgeon)', icon: '&#129657;' },
+        { dayMin: 14, dayMax: 21, label: '2-week follow-up appointment',        icon: '&#128197;' },
+        { day: 14,     label: 'Waterproof dressing comes off',                 icon: '&#129579;' },
+        { day: 15,     label: 'Aspirin drops to 1x daily',                    icon: '&#129656;' },
+        { day: 21,     label: 'Possible driving eligibility &mdash; surgeon decides', icon: '&#128663;' },
+        { day: 42,     label: '6-week follow-up appointment',                  icon: '&#128197;' },
+        { day: 44,     label: 'Aspirin protocol complete',                     icon: '&#9989;' },
+        { day: 84,     label: '12-week follow-up appointment',                 icon: '&#128197;' }
+      ];
+
+      const contacts = [
+        { label: 'OrthoBethesda (main)', value: '301-530-1010' },
+        { label: 'Dr. Durbhakula email', value: 'sdurbhakulama@alignedortho.com' },
+        { label: 'PT scheduling',        value: '240-482-2438' },
+        { label: 'Suburban Hospital',    value: '301-896-2222' }
+      ];
+
+      let html = '<h2 class="card-title">&#128197; Recovery Timeline</h2>';
+
+      if (day !== null) {
+        html += '<div class="alert alert-success">&#9918; <strong>Day ' + day + '</strong> &mdash; ' + inningLabel(day) + '. You\'re rounding the bases, David!</div>';
+      }
+
+      html += '<div class="card">';
+      milestones.forEach(m => {
+        const isPast = day !== null && (m.day ? day > m.day : day > m.dayMax);
+        const isCurrent = day !== null && (
+          m.day === day ||
+          (m.dayMin && day >= m.dayMin && day <= m.dayMax)
+        );
+        const label = m.day ? 'Day ' + m.day : 'Day ' + m.dayMin + '&ndash;' + m.dayMax;
+
+        html += '<div style="display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);opacity:' + (isPast ? '0.5' : '1') + '">' +
+          '<div style="font-size:24px;min-width:32px;">' + m.icon + '</div>' +
+          '<div><div style="font-size:13px;font-weight:700;color:' + (isCurrent ? 'var(--nats-red)' : 'var(--muted)') + ';">' +
+          label + (isCurrent ? ' &larr; YOU ARE HERE' : '') + (isPast ? ' &#10003;' : '') +
+          '</div><div style="font-size:16px;">' + m.label + '</div></div></div>';
+      });
+      html += '</div>';
+
+      html += '<div class="card"><div class="card-title">&#128222; Important Contacts</div>';
+      contacts.forEach(c => {
+        html += '<div style="padding:10px 0;border-bottom:1px solid var(--border);">' +
+          '<div style="font-size:13px;color:var(--muted);">' + c.label + '</div>' +
+          '<div style="font-size:17px;font-weight:600;">' + c.value + '</div></div>';
+      });
+      html += '</div>';
+
+      el.innerHTML = html;
+    }
+
+    // ===== Dashboard + Print Scorecard =====
+    function getTimeOfDay() {
+      const h = new Date().getHours();
+      if (h < 12) return 'morning';
+      if (h < 17) return 'afternoon';
+      return 'evening';
+    }
+
+    function renderDashboard(el) {
+      const day = recoveryDay();
+      const today = todayStr();
+      const preSurgery = isPreSurgery();
+      const daysLeft = daysUntilSurgery();
+      const exercises = activeExercises();
+      const tylenolToday = preSurgery ? 0 : getTylenolTodayMg();
+      const amDone = exercises.filter(ex => isExerciseDone(ex.id, 'AM')).length;
+      const pmDone = exercises.filter(ex => isExerciseDone(ex.id, 'PM')).length;
+      const allDone = amDone === exercises.length && pmDone === exercises.length;
+      const streak = getStreak();
+
+      // All values here are computed numbers or static strings — not user input.
+      let html = '<div style="background:var(--nats-navy);color:white;border-radius:12px;padding:24px;margin-bottom:16px;text-align:center;">' +
+        '<div style="font-size:48px;margin-bottom:8px;">&#9918;</div>' +
+        '<h2 style="font-size:22px;margin-bottom:4px;">Good ' + getTimeOfDay() + ', David!</h2>';
+
+      if (preSurgery) {
+        html += '<p style="opacity:0.8;font-size:15px;">&#9918; Spring Training &bull; ' + daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' to Game Day</p>';
+      } else {
+        html += '<p style="opacity:0.8;font-size:15px;">Recovery Day ' + (day ?? '&mdash;') + ' &bull; ' + inningLabel(day) + '</p>';
+      }
+      html += '<p style="opacity:0.8;font-size:14px;">' + new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}) + '</p>';
+
+      if (streak > 0) {
+        html += '<p style="margin-top:8px;color:#ffcc00;font-weight:700;">&#128293; ' + streak + '-game winning streak!</p>';
+      }
+      if (allDone) {
+        const doneMsg = preSurgery
+          ? '&#127942; Full spring training workout today! Getting game-ready!'
+          : '&#127942; Complete game today! You pitched a shutout, David!';
+        html += '<p style="margin-top:8px;color:#ffcc00;font-weight:700;">' + doneMsg + '</p>';
+      }
+      html += '<p style="margin-top:10px;font-style:italic;opacity:0.7;font-size:14px;">&ldquo;' + natsCheer() + '&rdquo;</p>';
+      html += '</div>';
+
+      if (!preSurgery && tylenolToday >= 2500) {
+        html += '<div class="alert alert-warning">&#9888;&#65039; Tylenol today: ' + tylenolToday + 'mg / 3000mg max. Be careful.</div>';
+      }
+
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">' +
+        '<div class="card" style="text-align:center;padding:16px;">' +
+        '<div style="font-size:36px;font-weight:900;color:var(--nats-red);">' + amDone + '/' + exercises.length + '</div>' +
+        '<div style="font-size:13px;color:var(--muted);">AM ' + (preSurgery ? 'Prehab' : 'Exercises') + '</div></div>' +
+        '<div class="card" style="text-align:center;padding:16px;">' +
+        '<div style="font-size:36px;font-weight:900;color:var(--nats-navy);">' + pmDone + '/' + exercises.length + '</div>' +
+        '<div style="font-size:13px;color:var(--muted);">PM ' + (preSurgery ? 'Prehab' : 'Exercises') + '</div></div></div>';
+
+      if (preSurgery) {
+        // Spring Training: show exercises + BP, skip meds/symptoms
+        html += '<div class="card"><div class="card-title">Quick Actions</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+          '<button class="btn btn-primary" onclick="navigate(\'exercises\')" style="grid-column:span 2">&#9918; Do Spring Training Prehab</button>' +
+          '<button class="btn btn-outline" onclick="navigate(\'bp\')">&#10084;&#65039; Log BP</button>' +
+          '<button class="btn btn-outline" onclick="navigate(\'timeline\')">&#128197; Timeline</button>' +
+          '</div></div>';
+
+        html += '<div class="card" style="background:linear-gradient(135deg, var(--nats-navy) 0%, #1a3a6a 100%);color:white;">' +
+          '<div class="card-title" style="color:var(--nats-gold);">&#9918; Spring Training Game Plan</div>' +
+          '<p style="font-size:14px;opacity:0.9;margin-bottom:8px;">The stronger your legs go into surgery, the faster you\'ll recover. Focus on:</p>' +
+          '<ul style="font-size:14px;opacity:0.85;padding-left:20px;margin-bottom:8px;">' +
+          '<li>Quad sets &mdash; your #1 priority exercise</li>' +
+          '<li>Straight leg raises &mdash; builds quad strength</li>' +
+          '<li>Wall squats &amp; step-ups &mdash; functional strength</li>' +
+          '<li>Range of motion &mdash; heel slides keep the knee limber</li>' +
+          '</ul>' +
+          '<p style="font-size:13px;font-style:italic;opacity:0.7;">Think of it like building arm strength before the season. Every rep counts!</p></div>';
+      } else {
+        html += '<div class="card"><div class="card-title">Quick Actions</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+          '<button class="btn btn-primary" onclick="navigate(\'meds\')">&#128138; Log Meds</button>' +
+          '<button class="btn btn-secondary" onclick="navigate(\'exercises\')">&#129461; Do PT</button>' +
+          '<button class="btn btn-outline" onclick="navigate(\'bp\')">&#10084;&#65039; Log BP</button>' +
+          '<button class="btn btn-outline" onclick="navigate(\'symptoms\')">&#127777;&#65039; Check In</button>' +
+          '</div></div>';
+
+        if (day !== null) {
+          const aspirinNote = day <= 14
+            ? 'Reminder: 2 Aspirin today (morning &amp; evening)'
+            : day <= 44
+              ? 'Reminder: 1 Aspirin today'
+              : null;
+          if (aspirinNote) {
+            html += '<div class="alert alert-success">&#129656; ' + aspirinNote + '</div>';
+          }
+        }
+      }
+
+      html += '<button class="btn btn-outline btn-full no-print" onclick="printScorecard()" style="margin-top:8px;">' +
+        '&#128424;&#65039; Print Today\'s ' + (preSurgery ? 'Spring Training' : 'Daily') + ' Scorecard</button>';
+
+      // Sync settings link
+      const syncStatus = SYNC.url
+        ? (SYNC.isOnline ? '&#9989; Cloud sync active' : '&#128992; Cloud sync (offline)')
+        : '&#9940; No cloud sync';
+      html += '<div style="text-align:center;margin-top:16px;padding:12px;">' +
+        '<span style="font-size:13px;color:var(--muted);">' + syncStatus + '</span><br>' +
+        '<button onclick="showSyncSettings()" style="background:none;border:none;color:var(--nats-navy);font-size:13px;cursor:pointer;text-decoration:underline;padding:4px;">Configure Sync</button>' +
+        '</div>';
+
+      el.innerHTML = html;
+    }
+
+    function printScorecard() {
+      const day = recoveryDay();
+      const preSurgery = isPreSurgery();
+      const exercises = activeExercises();
+      const daysLeft = daysUntilSurgery();
+      const dateStr = new Date().toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+
+      // All print scorecard content is static — exercise names from constants, static contact info.
+      const printEl = document.getElementById('print-sheet');
+      let html = '<div class="print-header">';
+      if (preSurgery) {
+        html += '<h1>&#9918; Recovery Dugout &mdash; Spring Training Scorecard</h1>' +
+          '<p>' + dateStr + ' &bull; ' + daysLeft + ' days to Game Day</p>';
+      } else {
+        html += '<h1>&#9918; Recovery Dugout &mdash; Daily Scorecard</h1>' +
+          '<p>' + dateStr + ' &bull; Day ' + (day ?? '&mdash;') + ' of Recovery &bull; ' + inningLabel(day) + '</p>';
+      }
+      html += '</div>';
+
+      if (!preSurgery) {
+        const aspirinRow = day && day <= 14
+          ? '<tr><td>Aspirin 81mg</td><td>2x daily with food</td><td>_____</td><td>_____</td></tr>'
+          : day && day <= 44
+            ? '<tr><td>Aspirin 81mg</td><td>1x daily with food</td><td>_____</td><td>&mdash;</td></tr>'
+            : '';
+
+        html += '<div class="card"><div class="card-title">&#128138; Medications</div>' +
+          '<table><tr><th>Medication</th><th>Schedule</th><th>Time 1</th><th>Time 2</th></tr>' +
+          aspirinRow +
+          '<tr><td>Celebrex 200mg</td><td>1x if needed</td><td>_____</td><td>&mdash;</td></tr>' +
+          '<tr><td>Tylenol (max 3000mg/day)</td><td>up to 1000mg every 8h</td><td>_____</td><td>_____</td></tr>' +
+          '<tr><td>Oxycodone 5mg</td><td>as needed by pain level</td><td>_____</td><td>_____</td></tr>' +
+          '<tr><td>Colace 100mg</td><td>2x if needed</td><td>_____</td><td>_____</td></tr>' +
+          '</table></div>';
+      }
+
+      html += '<div class="card"><div class="card-title">' + (preSurgery ? '&#9918; Spring Training Prehab' : '&#129461; PT Exercises') + '</div>' +
+        '<table><tr><th>Exercise</th><th>Reps</th><th>AM &#10003;</th><th>PM &#10003;</th></tr>';
+      exercises.forEach(e => {
+        html += '<tr><td>' + e.name + '</td><td>' + e.reps + '</td><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td>&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>';
+      });
+      html += '</table></div>';
+
+      html += '<div class="card"><div class="card-title">&#127777;&#65039; Daily Check-In</div>' +
+        '<table><tr><th>Item</th><th>Reading</th><th>Alert Threshold</th></tr>' +
+        '<tr><td>Temperature (&deg;F)</td><td>_____</td><td>&ge;101&deg;F: call surgeon</td></tr>' +
+        '<tr><td>Blood Pressure</td><td>___ / ___</td><td></td></tr>' +
+        '<tr><td>Pain level (1&ndash;10)</td><td>_____</td><td></td></tr>' +
+        '<tr><td>Wound drainage</td><td>Red / Yellow / None</td><td>Yellow: email photo</td></tr>' +
+        '<tr><td>Swelling</td><td>None / Mild / Significant</td><td></td></tr>' +
+        '</table></div>';
+
+      html += '<div class="card"><div class="card-title">&#128222; Emergency Contacts</div>' +
+        '<p>OrthoBethesda: <strong>301-530-1010</strong> &nbsp;&nbsp; Suburban Hospital: <strong>301-896-2222</strong></p>' +
+        '<p style="margin-top:8px;">Dr. Durbhakula: <strong>sdurbhakulama@alignedortho.com</strong> &nbsp;&nbsp; PT Scheduling: <strong>240-482-2438</strong></p></div>';
+
+      printEl.innerHTML = html;
+      printEl.style.display = 'block';
+      window.print();
+      setTimeout(() => { printEl.style.display = 'none'; }, 1500);
+    }
+
+    // ===== App entry point =====
+    function init() {
+      if (!STATE.surgeryDate) {
+        // Check if sync URL exists — maybe another device already set up
+        if (SYNC.url) {
+          SYNC.pull().then(() => {
+            STATE.surgeryDate = STORE.get('recovery_start_date');
+            if (STATE.surgeryDate) {
+              renderApp();
+            } else {
+              renderSetup();
+            }
+          });
+        } else {
+          renderSetup();
+        }
+      } else {
+        renderApp();
+        // Pull latest data from cloud in background
+        SYNC.pull().then(() => {
+          STATE.surgeryDate = STORE.get('recovery_start_date');
+          navigate(STATE.currentSection);
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
