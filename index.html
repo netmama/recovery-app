@@ -453,11 +453,13 @@
     // ===== App state =====
     const STATE = {
       surgeryDate: STORE.get('recovery_start_date'),
-      currentSection: 'dashboard'
+      currentSection: 'dashboard',
+      previewPostOp: false
     };
 
     function recoveryDay() {
       if (!STATE.surgeryDate) return null;
+      if (STATE.previewPostOp) return 5; // Preview as Day 5
       const start = new Date(STATE.surgeryDate);
       const today = new Date();
       today.setHours(0,0,0,0);
@@ -466,8 +468,14 @@
     }
 
     function isPreSurgery() {
+      if (STATE.previewPostOp) return false;
       const day = recoveryDay();
       return day !== null && day <= 0;
+    }
+
+    function togglePreview() {
+      STATE.previewPostOp = !STATE.previewPostOp;
+      renderApp();
     }
 
     function daysUntilSurgery() {
@@ -1401,6 +1409,15 @@
 
       html += '<button class="btn btn-outline btn-full no-print" onclick="printScorecard()" style="margin-top:8px;">' +
         '&#128424;&#65039; Print Today\'s ' + (preSurgery ? 'Spring Training' : 'Daily') + ' Scorecard</button>';
+
+      // Preview mode toggle
+      if (preSurgery || STATE.previewPostOp) {
+        html += '<button class="btn btn-full no-print" onclick="togglePreview()" style="margin-top:8px;background:' + (STATE.previewPostOp ? 'var(--nats-navy)' : 'var(--nats-gold)') + ';color:white;">' +
+          (STATE.previewPostOp ? '&#9918; Back to Spring Training' : '&#128064; Preview Post-Surgery Mode') + '</button>';
+        if (STATE.previewPostOp) {
+          html += '<p style="text-align:center;font-size:13px;color:var(--warning);margin-top:6px;">Preview mode &mdash; this is what the app looks like after surgery. Nothing is being logged.</p>';
+        }
+      }
 
       // Sync settings link
       const syncStatus = SYNC.url
