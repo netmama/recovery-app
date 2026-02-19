@@ -681,6 +681,7 @@
     }
 
     function navigate(section) {
+      _quadTimerRunning = false;
       STATE.currentSection = section;
       document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
       const navEl = document.getElementById('nav-' + section);
@@ -1074,7 +1075,12 @@
       } catch(e) { /* Audio not available — silent fallback */ }
     }
 
+    var _quadTimerRunning = false;
+
     function startQuadTimer(session, exerciseId) {
+      if (_quadTimerRunning) return;
+      _quadTimerRunning = true;
+
       const isPreOp = exerciseId === 'pre_quad_sets';
       const HOLD_SECS = isPreOp ? 5 : 7;
       const REST_SECS = 3;
@@ -1095,6 +1101,7 @@
 
       function runPhase(rep, phase) {
         if (rep > TOTAL_REPS) {
+          _quadTimerRunning = false;
           beep(1047, 400);
           if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
           markExerciseDone(exerciseId || 'quad_sets', session);
